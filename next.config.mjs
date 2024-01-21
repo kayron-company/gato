@@ -8,6 +8,16 @@ import { env } from "./env.mjs"
 const config = withPlugins([[withBundleAnalyzer({ enabled: env.ANALYZE })]], {
   reactStrictMode: true,
   experimental: { instrumentationHook: true },
+  images: {
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "tailwindui.com",
+      },
+    ],
+  },
   rewrites() {
     return [
       { source: "/healthz", destination: "/api/health" },
