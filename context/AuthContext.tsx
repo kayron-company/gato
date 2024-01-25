@@ -3,7 +3,7 @@
 import axios from "axios"
 import Cookies from "js-cookie"
 import { useRouter } from "next/navigation"
-import React, { createContext, useContext, useState } from "react"
+import React, { createContext, useContext, useEffect, useState } from "react"
 import { initializeFacebook, logoutUserFacebook } from "utils/facebookUtils"
 
 interface User {
@@ -36,10 +36,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isAuthenticated: false,
     user: null,
   })
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await initializeFacebook()
+    }
+    fetchData()
+  }, [])
+
   const router = useRouter()
 
   const login = (data: Omit<AuthState, "isAuthenticated">) => {
     localStorage.setItem("sessionToken", data.token ?? "")
+
     setAuthState({
       ...data,
       isAuthenticated: true,
@@ -49,7 +58,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = async () => {
     try {
       // Logout from Facebook
-      await initializeFacebook()
 
       // Get session token from localStorage
       const sessionToken = localStorage.getItem("sessionToken")

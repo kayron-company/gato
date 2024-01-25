@@ -5,7 +5,7 @@ import { DashboardNav } from "components/dashboard-nav"
 import { Sheet, SheetContent, SheetTrigger } from "components/ui/sheet"
 import { navItems } from "constants/data"
 
-// import { Playlist } from "../data/playlists";
+// import { Playlist } from "components/DataTable/data/playlists";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   // playlists: Playlist[];

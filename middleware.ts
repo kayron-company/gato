@@ -5,7 +5,7 @@ export async function middleware(req: NextRequest) {
   const sessionToken = req.cookies.get('RT_sessionToken');
 
   if (sessionToken?.value) {
-    const response = await fetch('http:localhost:5000/verify-token', {
+    const response = await fetch('http://localhost:5000/verify-token', {
       headers: {
         'Authorization': `Bearer ${sessionToken.value}`
       }

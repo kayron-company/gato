@@ -4,23 +4,32 @@ declare global {
   }
 }
 
-export async function initializeFacebook() {
-  const script = document.createElement("script");
-  script.src = "https://connect.facebook.net/en_US/sdk.js";
-  script.async = true;
-  script.defer = true;
-  script.id = "facebook-jssdk";
-  document.body.appendChild(script);
+export function initializeFacebook(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (document.getElementById("facebook-jssdk")) {
+      resolve();
+      return;
+    }
 
-  window.fbAsyncInit = function() {
-    window.FB.init({
-      appId: "802780334358449", // Use your own appId
-      cookie: true, // Enable cookies to allow the server to access the session
-      xfbml: true,
-      version: "v18.0",
-    });
-  };
+    window.fbAsyncInit = function() {
+      window.FB.init({
+        appId: "802780334358449",
+        cookie: true,
+        xfbml: true,
+        version: "v18.0",
+      });
+      resolve();
+    };
+
+    const script = document.createElement("script");
+    script.src = "https://connect.facebook.net/en_US/sdk.js";
+    script.async = true;
+    script.defer = true;
+    script.id = "facebook-jssdk";
+    document.body.appendChild(script);
+  });
 }
+
 
 export function loginUserFacebook():Promise<string> {
   return new Promise((resolve, reject) => {
@@ -53,4 +62,83 @@ export function logoutUserFacebook() {
       }
     });
   });
+}
+
+export function getLeadDetails(leadId: string, pageAccessToken: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    window.FB.api(
+      `/${leadId}`,
+      'GET',
+      { access_token: pageAccessToken }, // Usando o token de acesso da página
+      function(response: any) {
+        if (response && !response.error) {
+          resolve(response);
+        } else {
+          reject(response.error);
+        }
+      }
+    );
+  });
+}
+
+
+interface FacebookPageData {
+  id: string;
+  access_token: string;
+  // Outros campos da resposta da Graph API que você pode precisar
+}
+
+export function getPageAccessToken(userAccessToken: string, pageId: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    window.FB.api(
+      '/me/accounts', // Endpoint para buscar as páginas que o usuário gerencia
+      'GET',
+      { access_token: userAccessToken }, // Usando o token de acesso do usuário
+      function(response: any) {
+        if (response && !response.error) {
+          const pages: FacebookPageData[] = response.data;
+          const pageData = pages.find(page => page.id === pageId);
+          if (pageData) {
+            resolve(pageData.access_token); // Retorna o token de acesso da página específica
+          } else {
+            reject(new Error("Página específica não encontrada"));
+          }
+        } else {
+          reject(response.error);
+        }
+      }
+    );
+  });
+}
+
+interface FacebookLeadData {
+  created_time: string;
+  id: string;
+  field_data: Array<{
+    name: string;
+    values: string[];
+  }>;
+}
+
+interface FormattedLeadData {
+  created_time: string;
+  id: string;
+  full_name?: string;
+  email?: string;
+  phone_number?: string;
+}
+
+export function formatLeadData(leadData: FacebookLeadData): FormattedLeadData {
+  const formattedData: FormattedLeadData = {
+    created_time: leadData.created_time,
+    id: leadData.id,
+  };
+
+  leadData.field_data.forEach(field => {
+    if (field.values.length > 0 && field.values[0] !== undefined) {
+      formattedData[field.name as keyof FormattedLeadData] = field.values[0];
+    }
+  });
+
+  return formattedData;
 }

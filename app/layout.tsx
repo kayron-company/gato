@@ -3,6 +3,8 @@ import ThemeProvider from "components/layout/ThemeToggle/theme-provider"
 import { AuthProvider } from "context/AuthContext"
 import "styles/tailwind.css"
 import { cn } from "lib/utils"
+import { initializeFacebook } from "utils/facebookUtils"
+import { useEffect } from "react"
 
 export const fontSans = FontSans({
   subsets: ["latin"],

@@ -15,10 +15,14 @@ declare global {
 }
 
 interface UserSession {
-  email: string
-  name: string
-  permissions: string[]
-  role: string
+  user: {
+    email: string
+    name: string
+    permissions: string[]
+    role: string
+    acessTokenFacebook: string
+    pageIds: string[]
+  }
   sessionToken: string
 }
 
@@ -55,10 +59,16 @@ export default function FacebookSignInButton() {
       const data = (await response.json()) as UserSession
 
       Cookies.set("RT_sessionToken", data.sessionToken, { secure: true, sameSite: "strict" })
+      Cookies.set("RT_user", JSON.stringify(data.user), { secure: true, sameSite: "strict" })
 
       login({
         token: data.sessionToken,
-        user: { name: data.name, email: data.email, permissions: data.permissions, role: data.role },
+        user: {
+          name: data.user.name,
+          email: data.user.email,
+          permissions: data.user.permissions,
+          role: data.user.role,
+        },
       })
 
       router.push("/dashboard")
@@ -67,10 +77,6 @@ export default function FacebookSignInButton() {
       console.error("Erro na autenticação:", error)
     }
   }
-
-  useEffect(() => {
-    initializeFacebook()
-  }, [])
 
   const Spinner = () => <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
 
