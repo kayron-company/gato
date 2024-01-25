@@ -12,7 +12,6 @@ export async function middleware(req: NextRequest) {
     });
 
     if (response.ok) {
-      // Se o usuário já está logado e tenta acessar '/login', redirecione para '/dashboard'
       if (req.nextUrl.pathname === '/login') {
         const url = req.nextUrl.clone();
         url.pathname = '/dashboard';
@@ -23,7 +22,6 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Se o usuário não está logado e tenta acessar uma rota protegida, redirecione para '/login'
   if (req.nextUrl.pathname !== '/login') {
     const url = req.nextUrl.clone();
     url.pathname = '/login';

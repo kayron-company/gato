@@ -1,6 +1,10 @@
 "use client"
 
+import axios from "axios"
+import Cookies from "js-cookie"
+import { useRouter } from "next/navigation"
 import React, { createContext, useContext, useState } from "react"
+import { initializeFacebook, logoutUserFacebook } from "utils/facebookUtils"
 
 interface User {
   email: string
@@ -17,7 +21,7 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
   login: (data: Omit<AuthState, "isAuthenticated">) => void
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -32,6 +36,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isAuthenticated: false,
     user: null,
   })
+  const router = useRouter()
 
   const login = (data: Omit<AuthState, "isAuthenticated">) => {
     localStorage.setItem("sessionToken", data.token ?? "")
@@ -41,13 +46,40 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     })
   }
 
-  const logout = () => {
-    localStorage.removeItem("sessionToken")
-    setAuthState({
-      token: null,
-      isAuthenticated: false,
-      user: null,
-    })
+  const logout = async () => {
+    try {
+      // Logout from Facebook
+      await initializeFacebook()
+
+      // Get session token from localStorage
+      const sessionToken = localStorage.getItem("sessionToken")
+
+      // Logout from your app
+      if (sessionToken) {
+        await axios.post(
+          "http://localhost:5000/logout",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${sessionToken}`,
+            },
+          }
+        )
+      }
+
+      localStorage.removeItem("sessionToken")
+      Cookies.remove("RT_sessionToken")
+
+      setAuthState({
+        token: null,
+        isAuthenticated: false,
+        user: null,
+      })
+
+      await logoutUserFacebook().then(() => router.push("/login"))
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   return <AuthContext.Provider value={{ ...authState, login, logout }}>{children}</AuthContext.Provider>

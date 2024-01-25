@@ -22,30 +22,35 @@ export async function initializeFacebook() {
   };
 }
 
-export function loginUserFacebook(handleResponse: (response: any) => void) {
-  window.FB.login(
-    function (response: any) {
+export function loginUserFacebook():Promise<string> {
+  return new Promise((resolve, reject) => {
+    window.FB.login((response: any) => {
       if (response.authResponse) {
-        console.log("Welcome! Fetching your information.... ");
-        handleResponse(response.authResponse.accessToken);
+        resolve(response.authResponse.accessToken);
       } else {
-        console.log("User cancelled login or did not fully authorize.");
+        reject(new Error("Falha na autenticação ou login cancelado pelo usuário."));
       }
-    },
-    {
-      config_id: "3773440749555880", 
-    }
-  ); 
+    }, {
+      config_id: "3773440749555880",
+    });
+  });
 }
 
+
 export function logoutUserFacebook() {
-  window.FB.getLoginStatus(function(response: any) {
-    if (response.status === 'connected') {
-      window.FB.logout(function() {        
-        window.location.href = "/login";
-      });
-    } else {
-      console.log("No user is currently logged in.");
-    }
+  return new Promise((resolve, reject) => {
+    window.FB.getLoginStatus(function(response: any) {
+      if (response.status === 'connected') {
+        window.FB.logout(function(response: any) {
+          if (response) {
+            resolve(response); 
+          } else {
+            reject(new Error("Falha ao realizar logout do Facebook"));
+          }
+        });
+      } else {
+        reject(new Error("Nenhum usuário está logado no momento."));
+      }
+    });
   });
 }
