@@ -1,14 +1,10 @@
 import {
-  ArrowDownIcon,
   ArrowRightIcon,
-  ArrowUpIcon,
   CheckCircledIcon,
-  CircleIcon,
   CrossCircledIcon,
   QuestionMarkCircledIcon,
-  StopwatchIcon,
+  TimerIcon,
 } from "@radix-ui/react-icons"
-
 export const labels = [
   {
     value: "bug",
@@ -28,49 +24,49 @@ export const statuses = [
   {
     value: "lead",
     label: "Lead",
-    icon: QuestionMarkCircledIcon, // Substitua pelo ícone desejado
+    color: "bg-blue-500", // Exemplo de cor de fundo
   },
   {
     value: "atendimento",
     label: "Atendimento",
-    icon: CircleIcon, // Substitua pelo ícone desejado
+    color: "bg-yellow-500", // Exemplo de cor de fundo
   },
   {
     value: "agendamento",
     label: "Agendamento",
-    icon: StopwatchIcon, // Substitua pelo ícone desejado
+    color: "bg-green-500", // Exemplo de cor de fundo
   },
   {
     value: "visita",
     label: "Visita",
-    icon: CheckCircledIcon, // Substitua pelo ícone desejado
+    color: "bg-purple-500", // Exemplo de cor de fundo
   },
   {
     value: "proposta",
     label: "Proposta",
-    icon: CheckCircledIcon, // Substitua pelo ícone desejado
+    color: "bg-indigo-500", // Exemplo de cor de fundo
   },
   {
     value: "fechamento",
     label: "Fechamento",
-    icon: CrossCircledIcon, // Substitua pelo ícone desejado
+    color: "bg-gree-700", // Exemplo de cor de fundo
   },
 ]
 
-export const priorities = [
-  {
-    label: "Low",
-    value: "low",
-    icon: ArrowDownIcon,
-  },
-  {
-    label: "Medium",
-    value: "medium",
-    icon: ArrowRightIcon,
-  },
-  {
-    label: "High",
-    value: "high",
-    icon: ArrowUpIcon,
-  },
-]
+// export const priorities = [
+//   {
+//     label: "Low",
+//     value: "low",
+//
+//   },
+//   {
+//     label: "Medium",
+//     value: "medium",
+//     icon: ArrowRightIcon,
+//   },
+//   {
+//     label: "High",
+//     value: "high",
+//     icon: ArrowUpIcon,
+//   },
+// ]

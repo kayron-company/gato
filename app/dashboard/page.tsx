@@ -8,12 +8,18 @@ import path from "path"
 
 import { columns } from "components/columns"
 import { DataTable } from "components/data-table"
-import { taskSchema } from "components/DataTable/data/schema"
+import leadsData from "components/DataTable/data/leads.json"
 
 import { Card, CardContent, CardHeader, CardTitle } from "components/ui/card"
 import { ScrollArea } from "components/ui/scroll-area"
 import { Separator } from "components/ui/separator"
-import { formatLeadData, getLeadDetails, getPageAccessToken, initializeFacebook } from "utils/facebookUtils"
+import {
+  formatLeadData,
+  FormattedLeadData,
+  getLeadDetails,
+  getPageAccessToken,
+  initializeFacebook,
+} from "utils/facebookUtils"
 
 interface Lead {
   id: number
@@ -21,6 +27,8 @@ interface Lead {
   form_id: string
   created_time: string
   facebook_page_id: string
+  facebook_page_name: string
+  status: string
   // outros campos conforme necessário
 }
 
@@ -51,51 +59,58 @@ async function fetchLeads(): Promise<Lead[]> {
 
 export default function Dashboard() {
   const [tasks, setTasks] = useState([])
-  const [isFacebookSDKInitialized, setIsFacebookSDKInitialized] = useState(false)
+  const [leads, setLeads] = useState<any[]>([])
 
   useEffect(() => {
-    initializeFacebook()
-      .then(async () => {
-        try {
-          const userDataString = Cookies.get("RT_user")
-          if (!userDataString) {
-            throw new Error("UserData not found in cookies")
-          }
-          const userData: UserData = JSON.parse(userDataString) as UserData
-          const userAccessToken = userData.accessTokenFacebook
-          const pageIds = userData.pageIds
+    const fetchAndDisplayLeadDetails = async () => {
+      try {
+        // Inicialize o SDK do Facebook
+        await initializeFacebook()
 
-          // Dicionário para armazenar os tokens de acesso de cada página
-          const pageAccessTokens: { [key: string]: string } = {}
-
-          // Obter tokens de acesso para cada página
-          for (const pageId of pageIds) {
-            const pageAccessToken = await getPageAccessToken(userAccessToken, pageId)
-            pageAccessTokens[pageId] = pageAccessToken
-          }
-          console.log({ pageAccessTokens })
-          // Obter todos os leads
-          const leads = await fetchLeads()
-
-          // Buscar detalhes de cada lead
-          for (const lead of leads) {
-            console.log({ lead })
-            const pageAccessToken = pageAccessTokens[lead.facebook_page_id]
-            if (pageAccessToken) {
-              const leadDetails = await getLeadDetails(lead.lead_id, pageAccessToken)
-              console.log(`Detalhes do Lead ${lead.lead_id}:`, formatLeadData(leadDetails))
-            } else {
-              console.log(`Token de acesso não encontrado para a página ${lead.facebook_page_id}`)
-            }
-          }
-        } catch (error) {
-          console.error("Error:", error)
+        const userDataString = Cookies.get("RT_user")
+        if (!userDataString) {
+          throw new Error("UserData not found in cookies")
         }
-      })
-      .catch((error) => {
-        console.error("Erro ao inicializar o SDK do Facebook:", error)
-      })
+        const userData: UserData = JSON.parse(userDataString) as UserData
+        const userAccessToken = userData.accessTokenFacebook
+
+        // Obter tokens de acesso para cada página
+        const pageAccessTokens: { [key: string]: string } = {}
+        for (const pageId of userData.pageIds) {
+          const pageAccessToken = await getPageAccessToken(userAccessToken, pageId)
+          pageAccessTokens[pageId] = pageAccessToken
+        }
+
+        // Obter todos os leads do backend
+        const backendLeads = await fetchLeads()
+
+        // Processar cada lead
+        const processedLeads = []
+        for (const lead of backendLeads) {
+          const pageAccessToken = pageAccessTokens[lead.facebook_page_id]
+          if (pageAccessToken) {
+            const leadDetails = await getLeadDetails(lead.lead_id, pageAccessToken)
+            const formattedLead = formatLeadData(
+              leadDetails,
+              lead.facebook_page_name,
+              lead.status,
+              lead.facebook_page_id
+            )
+            processedLeads.push(formattedLead)
+          }
+        }
+
+        // Atualizar o estado com os leads processados
+        setLeads(processedLeads)
+      } catch (error) {
+        console.error("Error:", error)
+      }
+    }
+
+    fetchAndDisplayLeadDetails()
   }, [])
+
+  console.log({ leads })
 
   return (
     <ScrollArea className="h-full">
@@ -107,28 +122,7 @@ export default function Dashboard() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  className="h-4 w-4 text-muted-foreground"
-                >
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">$45,231.89</div>
-                <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Subscriptions</CardTitle>
+                <CardTitle className="text-sm font-medium">Total de Leads</CardTitle>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -145,13 +139,13 @@ export default function Dashboard() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+2350</div>
-                <p className="text-xs text-muted-foreground">+180.1% from last month</p>
+                <div className="text-2xl font-bold">9999</div>
+                <p className="text-xs text-muted-foreground">+15% em relação ao mês passado</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Sales</CardTitle>
+                <CardTitle className="text-sm font-medium">Novos Leads</CardTitle>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -162,18 +156,19 @@ export default function Dashboard() {
                   strokeWidth="2"
                   className="h-4 w-4 text-muted-foreground"
                 >
-                  <rect width="20" height="14" x="2" y="5" rx="2" />
-                  <path d="M2 10h20" />
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+12,234</div>
-                <p className="text-xs text-muted-foreground">+19% from last month</p>
+                <div className="text-2xl font-bold">21</div>
+                <p className="text-xs text-muted-foreground">+20 novos leads esta semana</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Now</CardTitle>
+                <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -184,12 +179,37 @@ export default function Dashboard() {
                   strokeWidth="2"
                   className="h-4 w-4 text-muted-foreground"
                 >
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+573</div>
-                <p className="text-xs text-muted-foreground">+201 since last hour</p>
+                <div className="text-2xl font-bold">60%</div>
+                <p className="text-xs text-muted-foreground">12 fechamentos no último mês</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Aguardando Contato</CardTitle>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  className="h-4 w-4 text-muted-foreground"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">24</div>
+                <p className="text-xs text-muted-foreground">24 leads aguardando ação</p>
               </CardContent>
             </Card>
           </div>
@@ -200,7 +220,7 @@ export default function Dashboard() {
                 <span className="text-md">Acompanhe e gerencie seus contatos potenciais aqui.</span>
               </div>
               <Separator className="my-4" />
-              <DataTable data={tasks} columns={columns} />
+              <DataTable data={leads} columns={columns} />
             </div>
           </div>
         </div>

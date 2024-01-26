@@ -4,7 +4,7 @@ import { DotsHorizontalIcon } from "@radix-ui/react-icons"
 import { Row } from "@tanstack/react-table"
 
 import { labels } from "components/DataTable/data/data"
-import { taskSchema } from "components/DataTable/data/schema"
+import { leadSchema } from "components/DataTable/data/schema"
 import { Button } from "components/ui/button"
 import {
   DropdownMenu,
@@ -25,7 +25,7 @@ interface DataTableRowActionsProps<TData> {
 }
 
 export function DataTableRowActions<TData>({ row }: DataTableRowActionsProps<TData>) {
-  const task = taskSchema.parse(row.original)
+  const lead = leadSchema.parse(row.original)
 
   return (
     <DropdownMenu>
@@ -43,7 +43,7 @@ export function DataTableRowActions<TData>({ row }: DataTableRowActionsProps<TDa
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            <DropdownMenuRadioGroup value={task.label}>
+            <DropdownMenuRadioGroup value={lead.id}>
               {labels.map((label) => (
                 <DropdownMenuRadioItem key={label.value} value={label.value}>
                   {label.label}

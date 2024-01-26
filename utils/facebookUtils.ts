@@ -120,18 +120,24 @@ interface FacebookLeadData {
   }>;
 }
 
-interface FormattedLeadData {
+export interface FormattedLeadData {
   created_time: string;
   id: string;
   full_name?: string;
   email?: string;
   phone_number?: string;
+  facebook_page_name?: string;
+  facebook_page_id?: string;
+  status?: string;
 }
 
-export function formatLeadData(leadData: FacebookLeadData): FormattedLeadData {
+export function formatLeadData(leadData: FacebookLeadData, facebookPageName: string, status: string, facebookPageId: string): FormattedLeadData {
   const formattedData: FormattedLeadData = {
     created_time: leadData.created_time,
     id: leadData.id,
+    facebook_page_name: facebookPageName,
+    facebook_page_id: facebookPageId,
+    status: status
   };
 
   leadData.field_data.forEach(field => {
@@ -142,3 +148,4 @@ export function formatLeadData(leadData: FacebookLeadData): FormattedLeadData {
 
   return formattedData;
 }
+
