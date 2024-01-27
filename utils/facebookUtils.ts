@@ -81,12 +81,12 @@ export function getLeadDetails(leadId: string, pageAccessToken: string): Promise
   });
 }
 
-export function getLeadDetailsMock(leadId: string, pageAccessToken: string): Promise<FacebookLeadData> {
+export function getLeadDetailsMock(created_time: string, leadId: string, pageAccessToken: string): Promise<FacebookLeadData> {
   // Aqui você pode simular uma chamada de API ou retornar dados estáticos
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
-        created_time: new Date().toISOString(),
+        created_time,
         id: leadId,
         field_data: [
           {

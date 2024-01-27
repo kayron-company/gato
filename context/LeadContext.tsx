@@ -131,7 +131,7 @@ export const LeadProvider: React.FC<LeadProviderProps> = ({ children }) => {
       for (const lead of backendLeads.leads) {
         const pageAccessToken = pageAccessTokens[lead.facebook_page_id]
         if (pageAccessToken) {
-          const leadDetails = await getLeadDetailsMock(lead.lead_id, pageAccessToken)
+          const leadDetails = await getLeadDetailsMock(lead.created_time, lead.lead_id, pageAccessToken)
           const formattedLead = formatLeadData(leadDetails, lead.facebook_page_name, lead.status, lead.facebook_page_id)
 
           processedLeads.push(formattedLead)
