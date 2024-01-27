@@ -69,7 +69,6 @@ const rawData = JSON.stringify({
 })
 
 // log ouputs to the gh actions panel
-console.log(rawData)
 
 mkdirp.sync(path.join(nextMetaRoot, "analyze/"))
 fs.writeFileSync(path.join(nextMetaRoot, "analyze/__bundle_analysis.json"), rawData)

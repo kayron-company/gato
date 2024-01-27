@@ -19,6 +19,7 @@ import * as React from "react"
 import { DataTablePagination } from "components/data-table-pagination"
 import { DataTableToolbar } from "components/data-table-toolbar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "components/ui/table"
+import { useLeads } from "context/LeadContext"
 import { ScrollArea, ScrollBar } from "./ui/scroll-area"
 
 interface DataTableProps<TData, TValue> {
@@ -31,6 +32,13 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [sorting, setSorting] = React.useState<SortingState>([])
+  const {
+    leads, // Dados paginados vindos do servidor
+    isLoading,
+    totalPages,
+    currentPage,
+    fetchAndDisplayLeadDetails,
+  } = useLeads()
 
   const table = useReactTable({
     data,
@@ -40,8 +48,17 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
       columnVisibility,
       rowSelection,
       columnFilters,
+      pagination: {
+        pageIndex: currentPage - 1, // Ajuste conforme a indexação de página do seu servidor (0-indexado ou 1-indexado)
+        pageSize: 5, // Certifique-se de que este valor seja consistente com o que você está buscando do servidor
+      },
     },
-    enableRowSelection: true,
+    manualPagination: true, // Diga à tabela para não usar a paginação interna
+    pageCount: totalPages, // Informe à tabela o total de páginas
+    onPaginationChange: ({ pageIndex, pageSize }) => {
+      fetchAndDisplayLeadDetails(pageIndex + 1, pageSize)
+    },
+    enableRowSelection: false,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -84,7 +101,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  Nenhum lead encontrado
                 </TableCell>
               </TableRow>
             )}

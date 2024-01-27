@@ -1,27 +1,16 @@
 "use client"
 
-import Cookies from "js-cookie"
-import { useEffect, useState } from "react"
-import { z } from "zod"
-import { promises as fs } from "fs"
-import path from "path"
-
 import { columns } from "components/columns"
 import { DataTable } from "components/data-table"
-import leadsData from "components/DataTable/data/leads.json"
 
 import { Card, CardContent, CardHeader, CardTitle } from "components/ui/card"
+import { Progress } from "components/ui/progress"
 import { ScrollArea } from "components/ui/scroll-area"
 import { Separator } from "components/ui/separator"
-import {
-  formatLeadData,
-  FormattedLeadData,
-  getLeadDetails,
-  getPageAccessToken,
-  initializeFacebook,
-} from "utils/facebookUtils"
 
-interface Lead {
+import { useLeads } from "context/LeadContext"
+
+export interface Lead {
   id: number
   lead_id: string
   form_id: string
@@ -32,85 +21,8 @@ interface Lead {
   // outros campos conforme necessário
 }
 
-interface UserData {
-  email: string
-  name: string
-  permissions: string[]
-  role: string
-  accessTokenFacebook: string
-  pageIds: string[]
-}
-
-async function fetchLeads(): Promise<Lead[]> {
-  const token = Cookies.get("RT_sessionToken")
-  const response = await fetch("http://localhost:5000/lead", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error("Network response was not ok")
-  }
-
-  return (await response.json()) as Lead[]
-}
-
 export default function Dashboard() {
-  const [tasks, setTasks] = useState([])
-  const [leads, setLeads] = useState<any[]>([])
-
-  useEffect(() => {
-    const fetchAndDisplayLeadDetails = async () => {
-      try {
-        // Inicialize o SDK do Facebook
-        await initializeFacebook()
-
-        const userDataString = Cookies.get("RT_user")
-        if (!userDataString) {
-          throw new Error("UserData not found in cookies")
-        }
-        const userData: UserData = JSON.parse(userDataString) as UserData
-        const userAccessToken = userData.accessTokenFacebook
-
-        // Obter tokens de acesso para cada página
-        const pageAccessTokens: { [key: string]: string } = {}
-        for (const pageId of userData.pageIds) {
-          const pageAccessToken = await getPageAccessToken(userAccessToken, pageId)
-          pageAccessTokens[pageId] = pageAccessToken
-        }
-
-        // Obter todos os leads do backend
-        const backendLeads = await fetchLeads()
-
-        // Processar cada lead
-        const processedLeads = []
-        for (const lead of backendLeads) {
-          const pageAccessToken = pageAccessTokens[lead.facebook_page_id]
-          if (pageAccessToken) {
-            const leadDetails = await getLeadDetails(lead.lead_id, pageAccessToken)
-            const formattedLead = formatLeadData(
-              leadDetails,
-              lead.facebook_page_name,
-              lead.status,
-              lead.facebook_page_id
-            )
-            processedLeads.push(formattedLead)
-          }
-        }
-
-        // Atualizar o estado com os leads processados
-        setLeads(processedLeads)
-      } catch (error) {
-        console.error("Error:", error)
-      }
-    }
-
-    fetchAndDisplayLeadDetails()
-  }, [])
-
-  console.log({ leads })
+  const { leads, isLoading, analytics } = useLeads()
 
   return (
     <ScrollArea className="h-full">
@@ -139,13 +51,13 @@ export default function Dashboard() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">9999</div>
-                <p className="text-xs text-muted-foreground">+15% em relação ao mês passado</p>
+                <div className="text-2xl font-bold">{analytics ? analytics.total_leads : "Carregando..."}</div>
+                {/* <p className="text-xs text-muted-foreground">+15% em relação ao mês passado</p> */}
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Novos Leads</CardTitle>
+                <CardTitle className="text-sm font-medium">Total de novos Leads - últimos 7 Dias</CardTitle>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -162,8 +74,8 @@ export default function Dashboard() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">21</div>
-                <p className="text-xs text-muted-foreground">+20 novos leads esta semana</p>
+                <div className="text-2xl font-bold">{analytics ? analytics.new_leads_week : "Carregando..."}</div>
+                {/* <p className="text-xs text-muted-foreground">+20 novos leads esta semana</p> */}
               </CardContent>
             </Card>
             <Card>
@@ -185,8 +97,10 @@ export default function Dashboard() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">60%</div>
-                <p className="text-xs text-muted-foreground">12 fechamentos no último mês</p>
+                <div className="text-2xl font-bold">
+                  {analytics ? `${analytics.conversion_rate}%` : "Carregando..."}
+                </div>
+                {/* <p className="text-xs text-muted-foreground">12 fechamentos no último mês</p> */}
               </CardContent>
             </Card>
             <Card>
@@ -208,8 +122,10 @@ export default function Dashboard() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">24</div>
-                <p className="text-xs text-muted-foreground">24 leads aguardando ação</p>
+                <div className="text-2xl font-bold">
+                  {analytics ? analytics.leads_awaiting_contact : "Carregando..."}
+                </div>
+                {/* <p className="text-xs text-muted-foreground">24 leads aguardando ação</p> */}
               </CardContent>
             </Card>
           </div>
@@ -220,7 +136,14 @@ export default function Dashboard() {
                 <span className="text-md">Acompanhe e gerencie seus contatos potenciais aqui.</span>
               </div>
               <Separator className="my-4" />
-              <DataTable data={leads} columns={columns} />
+              {isLoading ? (
+                <div className="flex h-full items-center justify-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent"></div>
+                </div>
+              ) : (
+                // Ajuste o valor e a largura conforme necessário
+                <DataTable data={leads} columns={columns} />
+              )}
             </div>
           </div>
         </div>

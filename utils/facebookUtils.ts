@@ -81,7 +81,32 @@ export function getLeadDetails(leadId: string, pageAccessToken: string): Promise
   });
 }
 
-
+export function getLeadDetailsMock(leadId: string, pageAccessToken: string): Promise<FacebookLeadData> {
+  // Aqui você pode simular uma chamada de API ou retornar dados estáticos
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        created_time: new Date().toISOString(),
+        id: leadId,
+        field_data: [
+          {
+            name: 'full_name',
+            values: ['Mateus Oliveira']
+          },
+          {
+            name: 'email',
+            values: ['mateus.oliveira.developer@gmail.com']
+          },
+          {
+            name: 'phone_number',
+            values: ['+5585997375248']
+          }
+          // Adicione mais campos conforme necessário
+        ]
+      });
+    }); // Simula um atraso de rede
+  });
+}
 interface FacebookPageData {
   id: string;
   access_token: string;

@@ -2,9 +2,11 @@ import { Inter as FontSans } from "next/font/google"
 import ThemeProvider from "components/layout/ThemeToggle/theme-provider"
 import { AuthProvider } from "context/AuthContext"
 import "styles/tailwind.css"
+import { LeadProvider } from "context/LeadContext"
 import { cn } from "lib/utils"
 import { initializeFacebook } from "utils/facebookUtils"
 import { useEffect } from "react"
+import { Toaster } from "components/ui/sonner"
 
 export const fontSans = FontSans({
   subsets: ["latin"],
@@ -23,8 +25,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <LeadProvider>{children}</LeadProvider>
+          </AuthProvider>
         </ThemeProvider>
+        <Toaster richColors />
       </body>
     </html>
   )
