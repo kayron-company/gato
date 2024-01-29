@@ -15,9 +15,9 @@ import { Button } from "./ui/button"
 
 async function updateLeadStatus(leadId: string, newStatus: string, prevStatus: string): Promise<void> {
   try {
-    const token = Cookies.get("RT_sessionToken")
+    const token = Cookies.get("RT_accessToken")
 
-    const response = await fetch(`http://localhost:5000/lead/${leadId}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/lead/${leadId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

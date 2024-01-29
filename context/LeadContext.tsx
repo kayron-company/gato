@@ -26,12 +26,14 @@ interface LeadContextValue {
   leads: any[]
   setLeads: React.Dispatch<React.SetStateAction<any[]>>
   isLoading: boolean
-  fetchAndDisplayLeadDetails: (page?: number, perPage?: number) => Promise<void>
+  fetchAndDisplayLeadDetails: (page?: number, perPage?: number, statusFilter?: string[]) => Promise<void>
   totalPages: number
   currentPage: number
   perPage: number
   setPerPage: React.Dispatch<React.SetStateAction<number>>
   analytics: LeadAnalyticsData | null
+  selectedStatusFilter: string[]
+  setSelectedStatusFilter: React.Dispatch<React.SetStateAction<string[]>>
 }
 
 const LeadContext = createContext<LeadContextValue | undefined>(undefined)
@@ -49,9 +51,14 @@ interface UserData {
   pageIds: string[]
 }
 
-async function fetchLeads(page: number = 1, perPage: number = 10): Promise<any> {
-  const token = Cookies.get("RT_sessionToken")
-  const response = await fetch(`http://localhost:5000/lead?page=${page}&per_page=${perPage}`, {
+async function fetchLeads(page: number = 1, perPage: number = 10, statusFilter: string = ""): Promise<any> {
+  const token = Cookies.get("RT_accessToken")
+  let queryString = `page=${page}&per_page=${perPage}`
+  if (statusFilter) {
+    queryString += `&status=${statusFilter}`
+  }
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/lead?${queryString}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -66,8 +73,8 @@ async function fetchLeads(page: number = 1, perPage: number = 10): Promise<any> 
 }
 
 async function fetchLeadAnalytics(): Promise<any> {
-  const token = Cookies.get("RT_sessionToken")
-  const response = await fetch("http://localhost:5000/lead/analytics", {
+  const token = Cookies.get("RT_accessToken")
+  const response = await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/lead/analytics`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -88,8 +95,8 @@ export const LeadProvider: React.FC<LeadProviderProps> = ({ children }) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(10) // Você pode definir este valor com base em suas necessidades ou UI
   const [analytics, setAnalytics] = useState<LeadAnalyticsData | null>(null)
-
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string[]>([])
 
   // Aqui você pode mover a lógica do useEffect para buscar e exibir leads
 
@@ -102,7 +109,11 @@ export const LeadProvider: React.FC<LeadProviderProps> = ({ children }) => {
     }
   }
 
-  const fetchAndDisplayLeadDetails = async (page: number = currentPage, perPage: number = 10) => {
+  const fetchAndDisplayLeadDetails = async (
+    page: number = currentPage,
+    perPage: number = 10,
+    statusFilter: string[] = [""]
+  ) => {
     setIsLoading(true)
 
     try {
@@ -124,7 +135,7 @@ export const LeadProvider: React.FC<LeadProviderProps> = ({ children }) => {
       }
 
       // Obter todos os leads do backend
-      const backendLeads = await fetchLeads(page, perPage)
+      const backendLeads = await fetchLeads(page, perPage, selectedStatusFilter.join(","))
 
       // Processar cada lead
       const processedLeads = []
@@ -141,7 +152,7 @@ export const LeadProvider: React.FC<LeadProviderProps> = ({ children }) => {
       setLeads(processedLeads)
       setTotalPages(backendLeads.total_pages)
       setCurrentPage(backendLeads.current_page)
-
+      await fetchAndSetLeadAnalytics()
       //TODO: remover timeout quando resolver erro de undefined api do facebook
       setTimeout(() => {
         setIsLoading(false)
@@ -156,16 +167,24 @@ export const LeadProvider: React.FC<LeadProviderProps> = ({ children }) => {
   }
 
   useEffect(() => {
-    ;(async () => {
-      await fetchAndSetLeadAnalytics()
-    })()
-  }, [leads])
+    if (pathname === "/dashboard") {
+      ;(async () => {
+        await fetchAndSetLeadAnalytics()
+      })()
+    }
+  }, [leads, isLoading])
 
   useEffect(() => {
     if (pathname === "/dashboard") {
       fetchAndDisplayLeadDetails()
     }
   }, [pathname])
+
+  useEffect(() => {
+    if (pathname === "/dashboard") {
+      fetchAndDisplayLeadDetails(undefined, undefined, selectedStatusFilter)
+    }
+  }, [selectedStatusFilter])
 
   return (
     <LeadContext.Provider
@@ -179,6 +198,8 @@ export const LeadProvider: React.FC<LeadProviderProps> = ({ children }) => {
         perPage,
         setPerPage,
         analytics,
+        selectedStatusFilter,
+        setSelectedStatusFilter,
       }}
     >
       {children}

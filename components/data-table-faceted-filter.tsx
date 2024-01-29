@@ -15,6 +15,7 @@ import {
 } from "components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "components/ui/popover"
 import { Separator } from "components/ui/separator"
+import { useLeads } from "context/LeadContext"
 import { cn } from "lib/utils"
 
 interface DataTableFacetedFilterProps<TData, TValue> {
@@ -35,6 +36,28 @@ export function DataTableFacetedFilter<TData, TValue>({
   const facets = column?.getFacetedUniqueValues()
   const selectedValues = new Set(column?.getFilterValue() as string[])
 
+  // Use o estado global para manter o estado do filtro
+  const { selectedStatusFilter, setSelectedStatusFilter } = useLeads()
+
+  // Atualize o estado local quando o estado global mudar
+
+  React.useEffect(() => {
+    if (column && selectedStatusFilter.length !== 0) {
+      column.setFilterValue(selectedStatusFilter)
+    }
+  }, [selectedStatusFilter, column])
+
+  const handleSelect = (optionValue: string) => {
+    setSelectedStatusFilter((prevFilters) => {
+      const isAlreadySelected = prevFilters.includes(optionValue)
+      const newFilters = isAlreadySelected
+        ? prevFilters.filter((value) => value !== optionValue)
+        : [...prevFilters, optionValue]
+
+      return newFilters
+    })
+  }
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -50,7 +73,7 @@ export function DataTableFacetedFilter<TData, TValue>({
               <div className="hidden space-x-1 lg:flex">
                 {selectedValues.size > 2 ? (
                   <Badge variant="secondary" className="rounded-sm px-1 font-normal">
-                    {selectedValues.size} selected
+                    {selectedValues.size} selecionado
                   </Badge>
                 ) : (
                   options
@@ -73,22 +96,11 @@ export function DataTableFacetedFilter<TData, TValue>({
           <CommandInput placeholder={title} />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup defaultValue={selectedStatusFilter} value={selectedStatusFilter[0]}>
               {options.map((option) => {
-                const isSelected = selectedValues.has(option.value)
+                const isSelected = selectedStatusFilter.includes(option.value)
                 return (
-                  <CommandItem
-                    key={option.value}
-                    onSelect={() => {
-                      if (isSelected) {
-                        selectedValues.delete(option.value)
-                      } else {
-                        selectedValues.add(option.value)
-                      }
-                      const filterValues = Array.from(selectedValues)
-                      column?.setFilterValue(filterValues.length ? filterValues : undefined)
-                    }}
-                  >
+                  <CommandItem key={option.value} onSelect={() => handleSelect(option.value)}>
                     <div
                       className={cn(
                         "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
@@ -99,11 +111,11 @@ export function DataTableFacetedFilter<TData, TValue>({
                     </div>
                     {option.icon && <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />}
                     <span>{option.label}</span>
-                    {facets?.get(option.value) && (
+                    {/* {facets?.get(option.value) && (
                       <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
                         {facets.get(option.value)}
                       </span>
-                    )}
+                    )} */}
                   </CommandItem>
                 )
               })}

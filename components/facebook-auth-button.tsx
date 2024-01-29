@@ -23,7 +23,9 @@ interface UserSession {
     acessTokenFacebook: string
     pageIds: string[]
   }
-  sessionToken: string
+  accessToken: string
+  refreshToken: string
+  refreshTokenJti: string
 }
 
 export default function FacebookSignInButton() {
@@ -44,7 +46,7 @@ export default function FacebookSignInButton() {
 
   async function authenticateUser(accessToken: string) {
     try {
-      const response = await fetch("http://localhost:5000/auth", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/auth`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,11 +60,13 @@ export default function FacebookSignInButton() {
 
       const data = (await response.json()) as UserSession
 
-      Cookies.set("RT_sessionToken", data.sessionToken, { secure: true, sameSite: "strict" })
+      Cookies.set("RT_accessToken", data.accessToken, { secure: true, sameSite: "strict" })
+      Cookies.set("RT_refreshToken", data.refreshToken, { secure: true, sameSite: "strict" })
+      Cookies.set("RT_refreshTokenJti", data.refreshTokenJti, { secure: true, sameSite: "strict" })
       Cookies.set("RT_user", JSON.stringify(data.user), { secure: true, sameSite: "strict" })
 
       login({
-        token: data.sessionToken,
+        token: data.accessToken,
         user: {
           name: data.user.name,
           email: data.user.email,

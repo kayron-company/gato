@@ -57,26 +57,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = async () => {
     try {
-      // Logout from Facebook
+      const refreshJti = Cookies.get("RT_refreshTokenJti")
 
-      // Get session token from localStorage
-      const sessionToken = localStorage.getItem("sessionToken")
-
-      // Logout from your app
-      if (sessionToken) {
-        await axios.post(
-          "http://localhost:5000/logout",
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${sessionToken}`,
-            },
-          }
-        )
+      if (refreshJti) {
+        await axios.post(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/logout`, { refresh_token_jti: refreshJti })
       }
 
       localStorage.removeItem("sessionToken")
-      Cookies.remove("RT_sessionToken")
+      Cookies.remove("RT_accessToken")
+      Cookies.remove("RT_refreshToken")
+      Cookies.remove("RT_refreshTokenJti")
 
       setAuthState({
         token: null,

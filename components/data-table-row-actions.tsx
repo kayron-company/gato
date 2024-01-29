@@ -47,8 +47,8 @@ export function DataTableRowActions<TData>({ row }: DataTableRowActionsProps<TDa
   const handleDelete = async () => {
     setIsDialogOpen(false)
     try {
-      const token = Cookies.get("RT_sessionToken")
-      const response = await fetch(`http://localhost:5000/lead/${lead.id}`, {
+      const token = Cookies.get("RT_accessToken")
+      const response = await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/lead/${lead.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

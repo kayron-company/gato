@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import fetch from 'node-fetch';
 
 export async function middleware(req: NextRequest) {
-  const sessionToken = req.cookies.get('RT_sessionToken');
 
-  if (sessionToken?.value) {
-    const response = await fetch('http://localhost:5000/verify-token', {
+  const accessToken = req.cookies.get('RT_accessToken');
+
+  if (accessToken?.value) {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/verify-token`, {
       headers: {
-        'Authorization': `Bearer ${sessionToken.value}`
+        'Authorization': `Bearer ${accessToken.value}`
       }
     });
 
