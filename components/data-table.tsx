@@ -55,7 +55,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     },
     manualPagination: true, // Diga à tabela para não usar a paginação interna
     pageCount: totalPages, // Informe à tabela o total de páginas
-    onPaginationChange: ({ pageIndex, pageSize }) => {
+    onPaginationChange: ({ pageIndex, pageSize }: any) => {
       fetchAndDisplayLeadDetails(pageIndex + 1, pageSize)
     },
     enableRowSelection: false,
@@ -109,7 +109,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         </Table>
       </div>
 
-      <DataTablePagination table={table} />
+      <DataTablePagination />
     </div>
   )
 }
