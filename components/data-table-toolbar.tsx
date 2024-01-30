@@ -8,6 +8,7 @@ import { DataTableViewOptions } from "components/data-table-view-options"
 import { statuses } from "components/DataTable/data/data"
 import { Button } from "components/ui/button"
 import { Input } from "components/ui/input"
+import { useLeads } from "context/LeadContext"
 import { DataTableReload } from "./data-table-reload"
 import { ScrollArea, ScrollBar } from "./ui/scroll-area"
 
@@ -17,6 +18,7 @@ interface DataTableToolbarProps<TData> {
 
 export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
+  const { setSelectedStatusFilter } = useLeads()
 
   return (
     <ScrollArea>
@@ -35,7 +37,14 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
             <DataTableFacetedFilter column={table.getColumn("priority")} title="Priority" options={priorities} />
           )} */}
           {isFiltered && (
-            <Button variant="ghost" onClick={() => table.resetColumnFilters()} className="h-8 px-2 lg:px-3">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSelectedStatusFilter([])
+                table.resetColumnFilters()
+              }}
+              className="h-8 px-2 lg:px-3"
+            >
               Resetar
               <Cross2Icon className="ml-2 h-4 w-4" />
             </Button>
