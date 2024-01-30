@@ -22,6 +22,7 @@ interface UserSession {
     role: string
     acessTokenFacebook: string
     pageIds: string[]
+    phoneNumber: string
   }
   accessToken: string
   refreshToken: string
@@ -72,6 +73,7 @@ export default function FacebookSignInButton() {
           email: data.user.email,
           permissions: data.user.permissions,
           role: data.user.role,
+          phoneNumber: data.user.phoneNumber,
         },
       })
 

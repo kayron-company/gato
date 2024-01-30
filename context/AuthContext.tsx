@@ -11,6 +11,7 @@ interface User {
   name: string
   role: string
   permissions: string[]
+  phoneNumber: string
 }
 
 interface AuthState {
@@ -22,6 +23,8 @@ interface AuthState {
 interface AuthContextType extends AuthState {
   login: (data: Omit<AuthState, "isAuthenticated">) => void
   logout: () => Promise<void>
+  showPhoneModal: boolean
+  setShowPhoneModal: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -36,6 +39,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isAuthenticated: false,
     user: null,
   })
+  const [showPhoneModal, setShowPhoneModal] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,18 +53,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const login = (data: Omit<AuthState, "isAuthenticated">) => {
     localStorage.setItem("sessionToken", data.token ?? "")
 
+    if (!data.user) {
+      return
+    }
+
     setAuthState({
       ...data,
       isAuthenticated: true,
     })
+
+    if (!data.user.phoneNumber) {
+      setShowPhoneModal(true)
+    }
   }
 
   const logout = async () => {
     try {
       const refreshJti = Cookies.get("RT_refreshTokenJti")
+      const accessToken = Cookies.get("RT_accessToken")
 
-      if (refreshJti) {
-        await axios.post(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/logout`, { refresh_token_jti: refreshJti })
+      if (refreshJti && accessToken) {
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/logout`,
+          {
+            refresh_token_jti: refreshJti,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        )
       }
 
       localStorage.removeItem("sessionToken")
@@ -80,7 +103,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }
 
-  return <AuthContext.Provider value={{ ...authState, login, logout }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ ...authState, login, logout, showPhoneModal, setShowPhoneModal }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export const useAuth = () => {
