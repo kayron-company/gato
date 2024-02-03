@@ -86,7 +86,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         )
       }
 
-      console.log("logout")
       setAuthState({
         token: null,
         isAuthenticated: false,

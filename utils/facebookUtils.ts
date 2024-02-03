@@ -1,3 +1,5 @@
+import Cookies from "js-cookie";
+
 declare global {
   interface Window {
     fbAsyncInit: () => void;
@@ -46,22 +48,39 @@ export function loginUserFacebook():Promise<string> {
 }
 
 
-export function logoutUserFacebook() {
-  return new Promise((resolve, reject) => {
-    window.FB.getLoginStatus(function(response: any) {
-      if (response.status === 'connected') {
-        window.FB.logout(function(response: any) {
-          if (response) {
-            resolve(response); 
-          } else {
-            reject(new Error("Falha ao realizar logout do Facebook"));
-          }
-        });
-      } else {
-        reject(new Error("Nenhum usuário está logado no momento."));
-      }
+export async function logoutUserFacebook() {
+  try {
+    const response = await new Promise((resolve, reject) => {
+      window.FB.getLoginStatus(function(response: any) {
+        if (response.status === 'connected') {
+          window.FB.logout(function(response: any) {
+            if (response) {
+              resolve(response);
+            } else {
+              reject(new Error("Falha ao realizar logout do Facebook"));
+            }
+          });
+        } else {
+          reject(new Error("Nenhum usuário está logado no momento."));
+        }
+      });
     });
-  });
+    
+    localStorage.clear(); 
+    localStorage.removeItem("sessionToken")
+    
+    Cookies.remove("RT_accessToken")
+    Cookies.remove("RT_refreshToken")
+    Cookies.remove("RT_refreshTokenJti")
+    Cookies.remove("RT_user")
+    
+    window.location.href = "/login";
+    
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error; 
+  }
 }
 
 export function getLeadDetails(leadId: string, pageAccessToken: string): Promise<any> {
