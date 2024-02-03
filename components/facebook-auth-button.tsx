@@ -64,7 +64,7 @@ export default function FacebookSignInButton() {
       data.user.pageIds.forEach(async (pageId) => {
         const pageAccessToken = await getPageAccessToken(accessToken, pageId)
 
-        await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/webhook/subscribe`, {
+        const responseWebhookSubscribe = await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/webhook/subscribe`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -72,6 +72,10 @@ export default function FacebookSignInButton() {
           },
           body: JSON.stringify({ page_id: pageId, accessToken: pageAccessToken }),
         })
+
+        if (!responseWebhookSubscribe.ok) {
+          throw new Error("Falha ao inscrever o webhook")
+        }
       })
 
       Cookies.set("RT_accessToken", data.accessToken, { secure: true, sameSite: "strict" })
