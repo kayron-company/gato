@@ -90,14 +90,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       Cookies.remove("RT_accessToken")
       Cookies.remove("RT_refreshToken")
       Cookies.remove("RT_refreshTokenJti")
-
+      Cookies.remove("RT_user")
+      console.log("logout")
       setAuthState({
         token: null,
         isAuthenticated: false,
         user: null,
       })
 
-      await logoutUserFacebook().then(() => router.push("/login"))
+      await logoutUserFacebook().then((response) => {
+        console.log({ response })
+        router.push("/login")
+      })
+      console.log({ authState })
     } catch (error) {
       console.error(error)
     }
