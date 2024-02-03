@@ -4,7 +4,7 @@ import Cookies from "js-cookie"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useAuth } from "context/AuthContext"
-import { initializeFacebook, loginUserFacebook } from "utils/facebookUtils"
+import { getPageAccessToken, initializeFacebook, loginUserFacebook } from "utils/facebookUtils"
 import { Icons } from "./icons"
 import { Button } from "./ui/button"
 
@@ -63,14 +63,18 @@ export default function FacebookSignInButton() {
       const data = (await responseAuth.json()) as UserSession
 
       data.user.pageIds.forEach(async (pageId) => {
+        const pageAccessToken = await getPageAccessToken(accessToken, pageId)
+
         const responseWebhookSubscribe = await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/webhook/subscribe`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
-          body: JSON.stringify({ page_id: pageId, accessToken }),
+          body: JSON.stringify({ page_id: pageId, accessToken: pageAccessToken }),
         })
+
+        console.log({ responseWebhookSubscribe })
       })
 
       Cookies.set("RT_accessToken", data.accessToken, { secure: true, sameSite: "strict" })
