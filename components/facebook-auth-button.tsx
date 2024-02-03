@@ -64,12 +64,12 @@ export default function FacebookSignInButton() {
 
       data.user.pageIds.forEach(async (pageId) => {
         const pageAccessToken = await getPageAccessToken(accessToken, pageId)
-
+        console.log({ pageAccessToken })
         const responseWebhookSubscribe = await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/webhook/subscribe`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${data.accessToken}`,
           },
           body: JSON.stringify({ page_id: pageId, accessToken: pageAccessToken }),
         })
