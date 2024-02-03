@@ -47,7 +47,8 @@ export default function FacebookSignInButton() {
 
   async function authenticateUser(accessToken: string) {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/auth`, {
+      console.log({ accessToken })
+      const responseAuth = await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/auth`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,11 +56,22 @@ export default function FacebookSignInButton() {
         body: JSON.stringify({ accessToken }),
       })
 
-      if (!response.ok) {
+      if (!responseAuth.ok) {
         throw new Error("Falha na autenticação com o backend")
       }
 
-      const data = (await response.json()) as UserSession
+      const data = (await responseAuth.json()) as UserSession
+
+      data.user.pageIds.forEach(async (pageId) => {
+        const responseWebhookSubscribe = await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/webhook/subscribe`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ page_id: pageId, accessToken }),
+        })
+      })
 
       Cookies.set("RT_accessToken", data.accessToken, { secure: true, sameSite: "strict" })
       Cookies.set("RT_refreshToken", data.refreshToken, { secure: true, sameSite: "strict" })
