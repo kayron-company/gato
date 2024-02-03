@@ -172,7 +172,7 @@ export const LeadProvider: React.FC<LeadProviderProps> = ({ children }) => {
         await fetchAndSetLeadAnalytics()
       })()
     }
-  }, [leads, isLoading])
+  }, [leads])
 
   useEffect(() => {
     if (pathname === "/dashboard") {
