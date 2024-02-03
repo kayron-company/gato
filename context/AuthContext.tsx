@@ -86,11 +86,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         )
       }
 
-      localStorage.removeItem("sessionToken")
-      Cookies.remove("RT_accessToken")
-      Cookies.remove("RT_refreshToken")
-      Cookies.remove("RT_refreshTokenJti")
-      Cookies.remove("RT_user")
       console.log("logout")
       setAuthState({
         token: null,
