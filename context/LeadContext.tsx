@@ -152,7 +152,7 @@ export const LeadProvider: React.FC<LeadProviderProps> = ({ children }) => {
       setLeads(processedLeads)
       setTotalPages(backendLeads.total_pages)
       setCurrentPage(backendLeads.current_page)
-      await fetchAndSetLeadAnalytics()
+
       //TODO: remover timeout quando resolver erro de undefined api do facebook
       setTimeout(() => {
         setIsLoading(false)
