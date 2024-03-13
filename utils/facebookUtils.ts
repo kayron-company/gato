@@ -100,11 +100,11 @@ export function getLeadDetails(leadId: string, pageAccessToken: string): Promise
   });
 }
 
-export function getLeadDetailsMock(created_time: string, leadId: string, pageAccessToken: string): Promise<FacebookLeadData> {
-  // Aqui você pode simular uma chamada de API ou retornar dados estáticos
+export function getLeadDetailsMock(created_time, leadId, pageAccessToken) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve({
+      // Simula a obtenção dos detalhes do lead
+      const leadDetails = {
         created_time,
         id: leadId,
         field_data: [
@@ -122,10 +122,72 @@ export function getLeadDetailsMock(created_time: string, leadId: string, pageAcc
           }
           // Adicione mais campos conforme necessário
         ]
+      };
+
+      // Prepara os dados para a requisição da API
+      const phoneNumber = leadDetails.field_data.find(field => field.name === 'phone_number').values[0];
+      const fullName = leadDetails.field_data.find(field => field.name === 'full_name').values[0];
+
+      const messageData = {
+        messaging_product: "whatsapp",
+        to: "5585996849077",
+        type: "template",
+        template: {
+          name: "lead_notification",
+          language: {
+            code: "pt_BR"
+          },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  text: "Olá" // Saudação
+                },
+                {
+                  type: "text",
+                  text: fullName // Nome do lead
+                },
+                {
+                  type: "text",
+                  text: "Temos uma novidade para você!" // Mensagem personalizada
+                },
+                {
+                  type: "text",
+                  text: phoneNumber // Número de telefone
+                }
+              ]
+            }
+            // Adicione mais componentes conforme necessário
+          ]
+        }
+      };
+
+      // Envia a requisição para a API do Facebook/WhatsApp
+      fetch('https://graph.facebook.com/v18.0/171057119435308/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer EAALaH9ypf7EBOZCe8PScoOiE8erScPotLHj9ZCnlZBe4Irt8kG4ZAxqLUSkNpkUTRQhhaeZB2OCX4JglUiFYXxbNLqZCv4b5MjeQw1ToJhPZA3gGGhnmtevnNeoDeZCb7ovvZBlKzr2LERs8sizCVayehmfIUyUz7dEL9RiyZCFgis0XoLaWojX8tIXOxCPTpl8k9fB9R0qcYvb7c8q1Cvr6cEjFSrJoctWjlLTi5ax69ZCxRUZD`
+        },
+        body: JSON.stringify(messageData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Notificação enviada com sucesso:', data);
+        resolve(leadDetails); // Resolve a promessa original com os detalhes do lead
+      })
+      .catch(error => {
+        console.error('Erro ao enviar notificação:', error);
+        resolve(leadDetails); // Pode optar por rejeitar a promessa aqui, se preferir
       });
-    }); // Simula um atraso de rede
+
+    }, 1000); // Simula um atraso de rede
   });
 }
+
+
 interface FacebookPageData {
   id: string;
   access_token: string;
