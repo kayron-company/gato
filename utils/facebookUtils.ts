@@ -100,7 +100,7 @@ export function getLeadDetails(leadId: string, pageAccessToken: string): Promise
   });
 }
 
-export function getLeadDetailsMock(created_time, leadId, pageAccessToken) {
+export function getLeadDetailsMock(created_time: string, leadId: string, pageAccessToken: string) {
   return new Promise((resolve) => {
     setTimeout(() => {
       // Simula a obtenção dos detalhes do lead
@@ -125,8 +125,8 @@ export function getLeadDetailsMock(created_time, leadId, pageAccessToken) {
       };
 
       // Prepara os dados para a requisição da API
-      const phoneNumber = leadDetails.field_data.find(field => field.name === 'phone_number').values[0];
-      const fullName = leadDetails.field_data.find(field => field.name === 'full_name').values[0];
+      const phoneNumber = leadDetails.field_data.find(field => field.name === 'phone_number')?.values[0];
+      const fullName = leadDetails.field_data.find(field => field.name === 'full_name')?.values[0];
 
       const messageData = {
         messaging_product: "whatsapp",
