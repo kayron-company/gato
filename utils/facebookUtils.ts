@@ -100,7 +100,7 @@ export function getLeadDetails(leadId: string, pageAccessToken: string): Promise
   });
 }
 
-export function getLeadDetailsMock(created_time: string, leadId: string, pageAccessToken: string) {
+export function getLeadDetailsMock(created_time: string, leadId: string, pageAccessToken: string): Promise<FacebookLeadData> {
   return new Promise((resolve) => {
     setTimeout(() => {
       // Simula a obtenção dos detalhes do lead
