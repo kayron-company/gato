@@ -179,7 +179,7 @@ export function getLeadDetailsMock(created_time: string, leadId: string, pageAcc
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer EAALaH9ypf7EBO941ZAMXC8rU4skbZByW9GkZAi4P7fRZAnVV6V5WEfNMOZBAZAVs72xUjC4WiO93IibBwqVAzoaY3qtoexcM3SnS4d8MNd3u5NoOVOIQnZBoLhea1fVZBZARo6QcxRQSVwkeHnMZABCIkDpPKxEUO59PvWSdoMFGX812RoO6mUhFxJrHm926EZBe23mqs5LSKWNwYEc5dxZABYUOenXClOxfpAehfqLtLO4KswBh`
+          'Authorization': `Bearer EAALaH9ypf7EBOZBgtGfJrTZAd2B5ZCPV6xGSRf3qUJSJPbpWpbHJERrVFF6fPUbNZATuX45guaIZBvuVOmPMdoeCokcuRKrLTQZCilE00VXt0tC0Dt9nHf7Rqfq2ziEBfY5Me5ZAhrIZByoBfSFoZBr2cjp5jws4V30AljZCrmG4qZC6RLcQ5FJ2ZAmGVH9uYCvHQmTaZB2BrlMS8RE3P0iyCLRGQZB7e9SoUnV2HALCP5ZBEajcZBgZD`
         },
         body: JSON.stringify(messageData)
       })
