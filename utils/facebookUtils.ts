@@ -158,8 +158,18 @@ export function getLeadDetailsMock(created_time: string, leadId: string, pageAcc
                   text: phoneNumber // Número de telefone
                 }
               ]
+            },
+            {
+              "type": "button",
+              "sub_type": "url",
+              "index": "0",
+              "parameters": [
+                {
+                  "type": "text",
+                  "text": "teste123"
+                }
+              ]
             }
-            // Adicione mais componentes conforme necessário
           ]
         }
       };
