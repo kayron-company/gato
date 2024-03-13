@@ -143,7 +143,7 @@ export function getLeadDetailsMock(created_time: string, leadId: string, pageAcc
               parameters: [
                 {
                   type: "text",
-                  text: "Olá" // Saudação
+                  text: "Rafael" // Saudação
                 },
                 {
                   type: "text",
@@ -151,7 +151,7 @@ export function getLeadDetailsMock(created_time: string, leadId: string, pageAcc
                 },
                 {
                   type: "text",
-                  text: "Temos uma novidade para você!" // Mensagem personalizada
+                  text: "Loteamento boa vista" // Mensagem personalizada
                 },
                 {
                   type: "text",
